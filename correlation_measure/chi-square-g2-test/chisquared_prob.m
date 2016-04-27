@@ -27,7 +27,8 @@ function P = chisquared_prob(X2,v)
 % as given by Press et al. (Recipes) eq. (6.2.17)
 
 % Following nonsense is necessary from Matlab version 3 -> version 4
-versn_str=version; eval(['versn=' versn_str(1) ';']);
+versn_str = version; 
+eval(['versn=' versn_str(1) ';']);
 if versn<=3, %sigh
  P = gamma(v/2, X2/2);
 else
