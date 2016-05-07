@@ -1,62 +1,77 @@
+function [selected, time] =Alpha_Investing(X, y, wealth, delta_alpha)
+% ALPHA_INVESTING Streamwise Feature Selection 
+% 
+% [f, time] = Alpha_Investing(X, y, wealth, delta_alpha)
+%
+% This code implements main streamwise feature selection (SFS), which is
+% known as Alpha investing 
+%
+% INPUT 
+%  X: features: Number of Observations by Features 
+%  y: class labels 
+%  wealth: 
+%  delta_alpha: 
+%
+% OUTPUT
+%  selected: feature selected by alpha investing 
+%  time: evaluation time
 
-% Below is the main streamwise feature selection (SFS) code. It uses two helper functions, Linear_Regression and Prediction_Error 
-% the main function, Alpha_Investing 
+if nargin < 3
+  wealth = .5;
+end
+if nargin < 4
+  delta_alpha = .5;
+end
 
- function [f,time] =Alpha_Investing(X, y)
- % configure parameters (I never change these)
- start=tic;
-   wealth = 0.5;
-   delta_alpha = 0.5;
- % n observations; p features
-   [n,p] = size(X);
- % initially add constant term into the model
-   model = [1, zeros(1,p-1)];
-   error = Prediction_Error(X(:,model==1), y, Linear_Regression(X(:,model==1), y));
- for i=2:p
-     
-     %if mod(i,1000)==0
-         i
-    %end
-     
-   alpha = wealth/(2*i);
-   %i
-   %compute p_value
-   %method one: derive delta(loglikelihood) from L2 error
-   model(i) = 1;
-   error_new = Prediction_Error(X(:,model==1), y, Linear_Regression(X(:,model==1), y));
-   sigma2 = error/n;
-   p_value = exp((error_new-error)/(2*sigma2));
-   
-   %method two: derive delta(loglikelihood) from t-statistic
-   %model(i) = 1;
-   %w = Linear_Regression(X(:,model==1), y);
-   %sigma2 = Prediction_Error(X(:,model==1), y, w)/n;
-   %EX = mean(X(:,model==1));
-   %w_new_std = w(end)/sqrt(sigma2/(sum(sum((X(:,model==1)-ones(n,1)*EX).^2, 2))));
-   %p_value = 2*(1-normcdf(abs(w_new_std), 0, 1));
-   
-   if p_value < alpha %feature i is accepted
-       model(i) = 1;
-       error = error_new;
-       wealth = wealth + delta_alpha - alpha;
-   else %feature i is discarded
-       model(i) = 0;
-       wealth = wealth - alpha;
-   end
- end
- % train final model
-  w = zeros(p,1);
-  w(model==1,1) = Linear_Regression(X(:,model==1), y);
+start = tic;
+
+% n observations; p features
+[n,p] = size(X);
+% initially add constant term into the model
+model = [1, zeros(1,p-1)];
+error = Prediction_Error(X(:,model==1), y, Linear_Regression(X(:,model==1), y));
+
+for i = 2:p
+  alpha = wealth/(2*i);
+
+  model(i) = 1;
+  error_new = Prediction_Error(X(:,model==1), y, Linear_Regression(X(:,model==1), y));
+  sigma2 = error/n;
+  p_value = exp((error_new-error)/(2*sigma2));
+
+  if p_value < alpha %feature i is accepted
+    model(i) = 1;
+    error = error_new;
+    wealth = wealth + delta_alpha - alpha;
+  else %feature i is discarded
+    model(i) = 0;
+    wealth = wealth - alpha;
+  end
+end
+ 
+% train final model
+w = zeros(p,1);
+w(model==1,1) = Linear_Regression(X(:,model==1), y);
   
-  time=toc(start);
-  f=find(model);
-  % Linear_Regression 
-function [w] = Linear_Regression(X, y)
-   % this is not the most efficient way to find w!
-  w = inv(X'*X)*X'*y;
-   %w=regress(y,X);
-   
-  % Prediction_Error 
-  function [error] = Prediction_Error(X, y, w)
-     yhat = X*w;
-     error = sum((y-yhat).^2);
+time = toc(start);
+selected = find(model);
+
+% Linear_Regression 
+function w = Linear_Regression(X, y)
+% LINEAR_REGRESSION Build a linear model 
+%
+% w = Linear_Regression(X, y)
+% 
+% This is not the most efficient way to find w!
+
+% w = inv(X'*X)*X'*y;
+w = (X'*X)\X'*y;
+
+
+% Prediction_Error 
+function error = Prediction_Error(X, y, w)
+% PREDICTION_ERROR Measure sum squared error a linear model 
+%
+% error = Prediction_Error(X, y, w)
+yhat = X*w;
+error = sum((y-yhat).^2);
