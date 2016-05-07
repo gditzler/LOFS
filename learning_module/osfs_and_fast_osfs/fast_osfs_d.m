@@ -1,5 +1,9 @@
-function   [selected_features,time]=fast_osfs_d(data1,class_index,alpha,test)
-
+function [selected_features, time] = fast_osfs_d(data1, class_index, alpha, test)
+% FAST_OSFS_D 
+% [selected_features, time] = fast_osfs_d(data1, class_index, alpha, test)
+%
+% INPUT
+% OUTPUT
 
 %for disccrete data
 
@@ -33,63 +37,52 @@ function   [selected_features,time]=fast_osfs_d(data1,class_index,alpha,test)
 
 
 
-start=tic;
+start = tic;
 
-[n,p]=size(data1);
-ns=max(data1);
-selected_features=[];
-selected_features1=[];
-b=[];
+[n, p] = size(data1);
+ns = max(data1);
+selected_features = [];
+selected_features1 = [];
+b = [];
 
 
- for i=1:p-1%the last feature is the class attribute, i.e., the target)
+for i = 1:p-1%the last feature is the class attribute, i.e., the target)
+  %for very sparse data 
+  n1 = sum(data1(:,i));
+  if n1 == 0
+    continue;
+  end
+  
+  stop = 0;
+  CI = my_cond_indep_chisquare(data1, i, class_index, [], test, alpha, ns);
+
+  if CI == 0
+    stop = 1;
+  end
+  
+  if stop
+    if ~isempty(selected_features)
+      CI = compter_dep_2(selected_features, i, class_index, 3, 1, alpha, test, data1);
+    end
     
-
-     %for very sparse data 
-     n1=sum(data1(:,i));
-      if n1==0
-        continue;
-      end     
-     
-     
-     stop=0;
-     
-      CI=1;
-     
-      [CI] = my_cond_indep_chisquare(data1,i, class_index, [], test, alpha, ns);
-      
-      if CI==0
-          stop=1;
-      end
-         
-          if stop
-              
-                if ~isempty(selected_features)
-                    [CI]=compter_dep_2(selected_features,i,class_index,3, 1, alpha, test,data1);
-                end              
-                           
-                if CI==0
-                    
-                    selected_features=[selected_features,i];
-                    p2=length(selected_features);
-                    selected_features1=selected_features;           
-                  
-                    for j=1:p2
- 
-                       b=setdiff(selected_features1,selected_features(j), 'stable');  
-                       if ~isempty(b)
-                          [CI]=optimal_compter_dep_2(b,selected_features(j),class_index,3, 1, alpha, test,data1);                    
-                                 
-                           if CI==1
-                               selected_features1=b;
-                           end
-                       end
-                    end
-                end
+    if CI == 0
+      selected_features = [selected_features, i];
+      p2 = length(selected_features);
+      selected_features1 = selected_features;   
+      for j = 1:p2
+        b = setdiff(selected_features1, selected_features(j), 'stable');  
+        if ~isempty(b)
+          CI = optimal_compter_dep_2(b, selected_features(j), class_index, 3, 1, alpha, test, data1);  
+          if CI == 1
+            selected_features1 = b;
           end
-   selected_features=selected_features1;
- end
-time=toc(start);    
+        end
+      end
+    end
+  end
+  selected_features = selected_features1;
+end
+time = toc(start);    
 
    
   

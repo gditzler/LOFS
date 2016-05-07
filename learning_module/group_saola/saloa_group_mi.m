@@ -49,11 +49,13 @@ for i = 1:numgroup
         t_dep = dep_ij;
         t_feature = current_feature1(k);
         
-        if dep(t_feature) >= dep(f_g_index(j)) && t_dep > min(dep(f_g_index(j)), dep(t_feature))
+        if dep(t_feature) >= dep(f_g_index(j)) ...
+            && t_dep > min(dep(f_g_index(j)), dep(t_feature))
           current_feature = setdiff(current_feature, f_g_index(j), 'stable');
           break;
         end
-        if dep(f_g_index(j)) > dep(t_feature) && t_dep > min(dep(f_g_index(j)), dep(t_feature))
+        if dep(f_g_index(j)) > dep(t_feature) ...
+            && t_dep > min(dep(f_g_index(j)), dep(t_feature))
           current_feature = setdiff(current_feature, t_feature, 'stable');
         end
       end
@@ -75,11 +77,13 @@ for i = 1:numgroup
           t_dep1 = dep_ij1;
           t_feature1 = current_feature(m1);
           
-          if dep(g1(m2)) > dep(t_feature1) && t_dep1 > min(dep(g1(m2)), dep(t_feature1))
+          if dep(g1(m2)) > dep(t_feature1) ...
+              && t_dep1 > min(dep(g1(m2)), dep(t_feature1))
             g{i}=setdiff(g{i},t_feature1, 'stable');
             break;
           end
-          if dep(t_feature1) >= dep(g1(m2)) && t_dep1 > min(dep(g1(m2)), dep(t_feature1))
+          if dep(t_feature1) >= dep(g1(m2)) ...
+              && t_dep1 > min(dep(g1(m2)), dep(t_feature1))
             g{m} = setdiff(g{m}, g1(m2), 'stable');
           end
         end
